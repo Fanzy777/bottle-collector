@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Сбор бутылок</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #2e7d32; /* зеленая трава */
+            font-family: Arial, sans-serif;
+            touch-action: none;
+        }
+        #game-area {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .bottle {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            background: url('https://i.imgur.com/placeholder-bottle.png') no-repeat center/contain;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #counter {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            z-index: 1000;
+        }
+        #finish-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: gold;
+            color: black;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-area"></div>
+    <div id="counter">Собрано: 0</div>
+    <button id="finish-btn">Закончить сбор</button>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        let bottlesCollected = 0;
+        const gameArea = document.getElementById('game-area');
+        const counter = document.getElementById('counter');
+        const maxBottles = 15; // максимум бутылок на экране
+        const spawnInterval = 800; // миллисекунды
+
+        function createBottle() {
+            if (document.querySelectorAll('.bottle').length >= maxBottles) return;
+            const bottle = document.createElement('div');
+            bottle.className = 'bottle';
+            // случайная позиция, не слишком близко к краям
+            const left = Math.random() * (window.innerWidth - 60);
+            const top = Math.random() * (window.innerHeight - 80);
+            bottle.style.left = left + 'px';
+            bottle.style.top = top + 'px';
+            
+            bottle.addEventListener('click', function() {
+                bottle.remove();
+                bottlesCollected++;
+                counter.innerText = 'Собрано: ' + bottlesCollected;
+            });
+            
+            gameArea.appendChild(bottle);
+        }
+
+        // Запускаем генерацию бутылок
+        setInterval(createBottle, spawnInterval);
+
+        // Кнопка завершения
+        document.getElementById('finish-btn').addEventListener('click', function() {
+            // Отправляем данные боту
+            tg.sendData(JSON.stringify({
+                action: 'collect',
+                count: bottlesCollected
+            }));
+            tg.close();
+        });
+    </script>
+</body>
+</html>
