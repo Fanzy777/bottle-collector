@@ -1,283 +1,727 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Car Hacker Game</title>
-    <style>
-        :root {
-            --bg-color: #0d0d0d;
-            --text-color: #00ff41; /* Цвет хакера */
-            --accent-color: #ff003c;
-            --button-bg: #1a1a1a;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>CARJACK</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
 
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
+  * {
+    margin: 0; padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
 
-        #game-container {
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-        }
+  :root {
+    --green: #00ff41;
+    --dgreen: #00aa2a;
+    --red: #ff003c;
+    --yellow: #ffe600;
+    --bg: #010a01;
+  }
 
-        .timer {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: white;
-        }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;
+    background: var(--bg);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+  }
 
-        .balance {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
+  /* Фиксированный полноэкранный враппер */
+  #app {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
 
-        .slots-container {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-        }
+  #matrix-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    opacity: 0.15;
+    pointer-events: none;
+  }
 
-        .slot-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+  /* ===== ЭКРАНЫ ===== */
+  .screen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(10px, 2.5vh, 22px);
+    padding: 16px;
+    z-index: 10;
+  }
+  .screen.active { display: flex; }
 
-        .digit {
-            font-size: 2.5rem;
-            font-weight: bold;
-            background: var(--button-bg);
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #333;
-            width: 40px;
-            text-align: center;
-            margin-bottom: 10px;
-            transition: color 0.1s;
-        }
+  /* ===== ЗАГОЛОВОК ===== */
+  .title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(16px, 4.5vw, 24px);
+    font-weight: 900;
+    color: var(--green);
+    text-shadow: 0 0 16px var(--green), 0 0 32px var(--green);
+    letter-spacing: 6px;
+    text-align: center;
+    animation: flicker 4s infinite;
+  }
 
-        .digit.active {
-            color: #fff;
-        }
+  @keyframes flicker {
+    0%,95%,100% { opacity:1; }
+    96% { opacity:0.4; }
+    97% { opacity:1; }
+    98% { opacity:0.2; }
+    99% { opacity:1; }
+  }
 
-        .digit.green {
-            color: #00ff00;
-            text-shadow: 0 0 10px #00ff00;
-        }
+  /* ===== ТАЙМЕР ===== */
+  .timer-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Orbitron', monospace;
+  }
+  .timer-label {
+    font-size: clamp(9px, 2.5vw, 12px);
+    color: var(--dgreen);
+    letter-spacing: 3px;
+  }
+  #timer {
+    font-size: clamp(22px, 7vw, 34px);
+    font-weight: 700;
+    color: var(--green);
+    text-shadow: 0 0 12px var(--green);
+    min-width: 55px;
+    text-align: center;
+    transition: color 0.3s;
+  }
+  #timer.warning { color: var(--yellow); text-shadow: 0 0 12px var(--yellow); }
+  #timer.danger  { color: var(--red); text-shadow: 0 0 12px var(--red); animation: pulse 0.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-        .stop-btn {
-            background: var(--button-bg);
-            color: white;
-            border: 1px solid var(--text-color);
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
+  /* ===== СТАТУС ===== */
+  .status-bar {
+    font-size: clamp(9px, 2.5vw, 12px);
+    letter-spacing: 2px;
+    color: var(--dgreen);
+    text-align: center;
+    min-height: 16px;
+  }
 
-        .stop-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
+  /* ===== СЛОТЫ ===== */
+  .slots-container {
+    display: flex;
+    gap: clamp(6px, 2vw, 12px);
+    align-items: flex-end;
+    justify-content: center;
+  }
 
-        .main-btn {
-            background: var(--text-color);
-            color: black;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
+  .slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #111;
-            padding: 20px;
-            border: 2px solid var(--text-color);
-            z-index: 10;
-            width: 80%;
-            text-align: center;
-        }
+  /* Кнопка СТОП */
+  .stop-btn {
+    width: clamp(44px, 12vw, 58px);
+    height: clamp(32px, 8vw, 40px);
+    background: transparent;
+    border: 1px solid #1a3a1a;
+    color: var(--dgreen);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(8px, 2.2vw, 11px);
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.15s;
+    touch-action: manipulation;
+    /* важно для тача */
+    -webkit-tap-highlight-color: transparent;
+  }
+  .stop-btn:active {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(0,255,65,0.12);
+    box-shadow: 0 0 10px rgba(0,255,65,0.4);
+    transform: scale(0.96);
+  }
+  .stop-btn.locked-state {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(0,255,65,0.1);
+    box-shadow: 0 0 12px rgba(0,255,65,0.5);
+    pointer-events: none;
+  }
 
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-        }
-    </style>
+  /* Дисплей символа */
+  .char-display {
+    width: clamp(44px, 12vw, 58px);
+    height: clamp(58px, 16vw, 76px);
+    border: 2px solid #1a4a1a;
+    border-radius: 6px;
+    background: #010e01;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(20px, 5.5vw, 28px);
+    font-weight: 700;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .char-display::before {
+    content:'';
+    position:absolute; top:0; left:0; right:0; height:40%;
+    background: linear-gradient(rgba(0,255,65,0.05), transparent);
+    pointer-events:none;
+  }
+  .char-current {
+    position: relative;
+    z-index: 2;
+  }
+
+  .char-display.rolling   { border-color: #1a4a1a; }
+  .char-display.rolling   .char-current { color: #00aa2a; }
+
+  .char-display.green-zone {
+    border-color: var(--green);
+    box-shadow: 0 0 18px rgba(0,255,65,0.5), inset 0 0 12px rgba(0,255,65,0.1);
+  }
+  .char-display.green-zone .char-current {
+    color: var(--green);
+    text-shadow: 0 0 12px var(--green);
+  }
+
+  .char-display.locked {
+    border-color: var(--green);
+    box-shadow: 0 0 22px rgba(0,255,65,0.6), inset 0 0 16px rgba(0,255,65,0.15);
+    background: #00150a;
+  }
+  .char-display.locked .char-current {
+    color: var(--green);
+    text-shadow: 0 0 16px var(--green), 0 0 32px var(--green);
+  }
+
+  /* ===== ПРОГРЕСС ===== */
+  .progress-wrap {
+    width: 100%;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .progress-label {
+    font-size: clamp(9px, 2.5vw, 11px);
+    color: var(--dgreen);
+    letter-spacing: 3px;
+    text-align: center;
+  }
+  .progress-bar {
+    width: 100%;
+    height: 5px;
+    background: #051005;
+    border: 1px solid #0a2a0a;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--dgreen), var(--green));
+    box-shadow: 0 0 6px var(--green);
+    transition: width 0.3s ease;
+    border-radius: 3px;
+  }
+
+  /* ===== КНОПКА СТАРТ ===== */
+  .main-btn {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(12px, 3.5vw, 16px);
+    font-weight: 700;
+    letter-spacing: 4px;
+    padding: clamp(12px, 3.5vw, 16px) clamp(28px, 8vw, 44px);
+    background: rgba(0,255,65,0.07);
+    border: 2px solid var(--green);
+    color: var(--green);
+    cursor: pointer;
+    border-radius: 5px;
+    text-shadow: 0 0 8px var(--green);
+    box-shadow: 0 0 18px rgba(0,255,65,0.2);
+    touch-action: manipulation;
+    transition: all 0.15s;
+  }
+  .main-btn:active {
+    background: rgba(0,255,65,0.18);
+    box-shadow: 0 0 30px rgba(0,255,65,0.45);
+    transform: scale(0.97);
+  }
+
+  .hint {
+    font-size: clamp(8px, 2.2vw, 11px);
+    color: #1a4a1a;
+    letter-spacing: 2px;
+    text-align: center;
+    max-width: 300px;
+  }
+
+  /* ===== ЭКРАН РЕЗУЛЬТАТА ===== */
+  .result-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(22px, 7vw, 34px);
+    font-weight: 900;
+    letter-spacing: 4px;
+    text-align: center;
+  }
+  .result-title.success {
+    color: var(--green);
+    text-shadow: 0 0 24px var(--green), 0 0 48px var(--green);
+    animation: successPulse 0.4s ease 3;
+  }
+  .result-title.fail {
+    color: var(--red);
+    text-shadow: 0 0 24px var(--red);
+  }
+  @keyframes successPulse {
+    0%,100%{transform:scale(1);}
+    50%{transform:scale(1.07);}
+  }
+
+  .result-reward {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(20px, 6vw, 30px);
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  .result-reward.win  { color: var(--yellow); text-shadow: 0 0 12px var(--yellow); }
+  .result-reward.fail { color: var(--red);    text-shadow: 0 0 10px var(--red); }
+
+  .result-sub {
+    font-size: clamp(9px, 2.5vw, 12px);
+    color: var(--dgreen);
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  .result-btns {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .btn-claim {
+    flex: 1; min-width: 130px;
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(10px, 2.8vw, 13px);
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: clamp(12px, 3.5vw, 15px) 10px;
+    background: rgba(0,255,65,0.12);
+    border: 2px solid var(--green);
+    color: var(--green);
+    cursor: pointer;
+    border-radius: 5px;
+    text-shadow: 0 0 6px var(--green);
+    box-shadow: 0 0 18px rgba(0,255,65,0.25);
+    touch-action: manipulation;
+    transition: all 0.15s;
+  }
+  .btn-claim:active {
+    background: rgba(0,255,65,0.24);
+    transform: scale(0.97);
+  }
+
+  .btn-again {
+    flex: 1; min-width: 130px;
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(10px, 2.8vw, 13px);
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: clamp(12px, 3.5vw, 15px) 10px;
+    background: transparent;
+    border: 2px solid #1a5a1a;
+    color: var(--dgreen);
+    cursor: pointer;
+    border-radius: 5px;
+    touch-action: manipulation;
+    transition: all 0.15s;
+  }
+  .btn-again:active {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(0,255,65,0.08);
+    transform: scale(0.97);
+  }
+
+  .btn-retry {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(11px, 3vw, 14px);
+    font-weight: 700;
+    letter-spacing: 3px;
+    padding: clamp(12px, 3.5vw, 15px) clamp(28px, 8vw, 40px);
+    background: transparent;
+    border: 2px solid var(--red);
+    color: var(--red);
+    cursor: pointer;
+    border-radius: 5px;
+    text-shadow: 0 0 6px var(--red);
+    box-shadow: 0 0 12px rgba(255,0,60,0.2);
+    touch-action: manipulation;
+    transition: all 0.15s;
+  }
+  .btn-retry:active {
+    background: rgba(255,0,60,0.1);
+    transform: scale(0.97);
+  }
+
+  /* Скан-линии */
+  body::after {
+    content:'';
+    position:fixed; top:0; left:0; right:0; bottom:0;
+    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+    pointer-events:none;
+    z-index:200;
+  }
+</style>
 </head>
 <body>
 
-    <div id="game-container">
-        <div class="balance">Баланс: <span id="total-balance">0</span>$</div>
-        <div class="timer">Осталось: <span id="time-left">60</span>с</div>
+<canvas id="matrix-canvas"></canvas>
 
-        <div class="slots-container">
-            <div class="slot-wrapper">
-                <button class="stop-btn" onclick="stopSlot(0)">STOP</button>
-                <div id="digit-0" class="digit">0</div>
-            </div>
-            <div class="slot-wrapper">
-                <button class="stop-btn" onclick="stopSlot(1)">STOP</button>
-                <div id="digit-1" class="digit">0</div>
-            </div>
-            <div class="slot-wrapper">
-                <button class="stop-btn" onclick="stopSlot(2)">STOP</button>
-                <div id="digit-2" class="digit">0</div>
-            </div>
-            <div class="slot-wrapper">
-                <button class="stop-btn" onclick="stopSlot(3)">STOP</button>
-                <div id="digit-3" class="digit">0</div>
-            </div>
-            <div class="slot-wrapper">
-                <button class="stop-btn" onclick="stopSlot(4)">STOP</button>
-                <div id="digit-4" class="digit">0</div>
-            </div>
+<div id="app">
+
+  <!-- СТАРТ ЭКРАН -->
+  <div class="screen active" id="screen-start">
+    <div class="title">// CARJACK //</div>
+    <div class="hint">ОСТАНОВИ СИМВОЛ В ЗЕЛЁНОЙ ЗОНЕ<br>5 РАЗ ПОДРЯД ЗА 30 СЕКУНД</div>
+    <button class="main-btn" id="start-btn">НАЧАТЬ ВЗЛОМ</button>
+  </div>
+
+  <!-- ИГРОВОЙ ЭКРАН -->
+  <div class="screen" id="screen-game">
+    <div class="title">// CARJACK //</div>
+
+    <div class="timer-wrap">
+      <span class="timer-label">TIME</span>
+      <span id="timer">30</span>
+      <span class="timer-label">SEC</span>
+    </div>
+
+    <div class="status-bar" id="status-bar">ОСТАНОВИ НА ЗЕЛЁНОМ СИМВОЛЕ</div>
+
+    <div class="slots-container" id="slots-container"></div>
+
+    <div class="progress-wrap">
+      <div class="progress-label">ВЗЛОМ: <span id="progress-text">0/5</span></div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ЭКРАН РЕЗУЛЬТАТА -->
+  <div class="screen" id="screen-result">
+    <div class="title">// CARJACK //</div>
+    <div class="result-title" id="result-title"></div>
+    <div class="result-reward" id="result-reward"></div>
+    <div class="result-sub" id="result-sub"></div>
+    <div class="result-btns" id="result-btns"></div>
+  </div>
+
+</div>
+
+<script>
+  // ===== МАТРИЦА =====
+  const canvas = document.getElementById('matrix-canvas');
+  const ctx    = canvas.getContext('2d');
+  function resizeCanvas() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  const matrixChars = 'アイウエオカキクケコ0123456789ABCDEF';
+  const drops = [];
+  function initDrops() {
+    const cols = Math.floor(canvas.width / 16);
+    drops.length = 0;
+    for (let i = 0; i < cols; i++) drops.push(Math.random() * canvas.height / 16);
+  }
+  initDrops();
+
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(1,10,1,0.055)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#00ff41';
+    ctx.font = '13px monospace';
+    drops.forEach((y, i) => {
+      const ch = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+      ctx.fillText(ch, i * 16, y * 16);
+      if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }
+  setInterval(drawMatrix, 55);
+
+  // ===== ПЕРЕМЕННЫЕ =====
+  const TOTAL    = 5;
+  const GAMETIME = 30;
+  const CHARS    = 'ABCDEF0123456789';
+  const GREENS   = ['A','F','0','7','E','3','B','9'];
+
+  let slots         = [];
+  let locked        = 0;
+  let timerInt      = null;
+  let timeLeft      = GAMETIME;
+  let gameActive    = false;
+  let pendingReward = 0;
+  let claimed       = false;
+
+  // ===== УТИЛИТЫ =====
+  function rndChar()   { return CHARS[Math.floor(Math.random() * CHARS.length)]; }
+  function greenChar() { return GREENS[Math.floor(Math.random() * GREENS.length)]; }
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+  function setStatus(t) { document.getElementById('status-bar').textContent = t; }
+  function setProgress() {
+    document.getElementById('progress-text').textContent = `${locked}/5`;
+    document.getElementById('progress-fill').style.width = `${(locked/TOTAL)*100}%`;
+  }
+
+  // ===== СТАРТ =====
+  document.getElementById('start-btn').addEventListener('touchend', function(e) {
+    e.preventDefault();
+    startGame();
+  });
+  document.getElementById('start-btn').addEventListener('click', startGame);
+
+  function startGame() {
+    gameActive    = true;
+    locked        = 0;
+    timeLeft      = GAMETIME;
+    claimed       = false;
+    pendingReward = 0;
+
+    showScreen('screen-game');
+    buildSlots();
+    setProgress();
+    setStatus('ОСТАНОВИ НА ЗЕЛЁНОМ СИМВОЛЕ');
+    updateTimerDisplay();
+
+    slots.forEach((_, i) => setTimeout(() => startSlot(i), i * 100));
+
+    timerInt = setInterval(() => {
+      timeLeft--;
+      updateTimerDisplay();
+      if (timeLeft <= 0) gameFail();
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const el = document.getElementById('timer');
+    el.textContent = timeLeft;
+    el.className   = timeLeft <= 5 ? 'danger' : timeLeft <= 10 ? 'warning' : '';
+  }
+
+  // ===== СЛОТЫ =====
+  function buildSlots() {
+    const c = document.getElementById('slots-container');
+    c.innerHTML = '';
+    slots = [];
+    for (let i = 0; i < TOTAL; i++) {
+      slots.push({ locked: false, rolling: false, interval: null, isGreen: false, char: rndChar() });
+      const div = document.createElement('div');
+      div.className = 'slot';
+      div.innerHTML = `
+        <button class="stop-btn" id="sb${i}">СТОП</button>
+        <div class="char-display" id="cd${i}">
+          <span class="char-current" id="cc${i}">${slots[i].char}</span>
         </div>
+      `;
+      c.appendChild(div);
 
-        <button id="start-btn" class="main-btn" onclick="startGame()">НАЧАТЬ ВЗЛОМ</button>
-    </div>
+      // touch + click на кнопку стоп
+      const btn = div.querySelector(`#sb${i}`);
+      btn.addEventListener('touchend', (e) => { e.preventDefault(); stopSlot(i); });
+      btn.addEventListener('click', () => stopSlot(i));
+    }
+  }
 
-    <div id="overlay" class="overlay"></div>
-    <div id="modal" class="modal">
-        <h2 id="modal-title">Взлом успешен!</h2>
-        <p id="modal-text"></p>
-        <button class="main-btn" onclick="collectMoney()">ЗАБРАТЬ</button>
-        <button class="main-btn" style="background: #ffa500;" onclick="resetForNewGame()">ВЗЛОМАТЬ ЕЩЕ</button>
-    </div>
+  function startSlot(i) {
+    const s   = slots[i];
+    s.rolling = true;
+    s.locked  = false;
+    const cd  = document.getElementById(`cd${i}`);
+    const cc  = document.getElementById(`cc${i}`);
+    const sb  = document.getElementById(`sb${i}`);
+    cd.className  = 'char-display rolling';
+    sb.className  = 'stop-btn';
+    sb.textContent = 'СТОП';
 
-    <script>
-        let balance = 0;
-        let currentWin = 0;
-        let timeLeft = 60;
-        let timerInterval;
-        let slotIntervals = [];
-        let slotsFinished = 0;
-        let isGameRunning = false;
-        
-        const digits = [0, 0, 0, 0, 0];
-        const isStopped = [false, false, false, false, false];
+    s.interval = setInterval(() => {
+      if (Math.random() < 0.30) {
+        s.char   = greenChar();
+        s.isGreen = true;
+        cd.className = 'char-display green-zone';
+      } else {
+        s.char   = rndChar();
+        s.isGreen = false;
+        cd.className = 'char-display rolling';
+      }
+      cc.textContent = s.char;
+    }, 400);
+  }
 
-        function startGame() {
-            if(isGameRunning) return;
-            isGameRunning = true;
-            slotsFinished = 0;
-            timeLeft = 60;
-            document.getElementById('start-btn').style.display = 'none';
-            document.getElementById('time-left').innerText = timeLeft;
-            
-            // Сброс состояния
-            for(let i=0; i<5; i++) {
-                isStopped[i] = false;
-                document.querySelectorAll('.stop-btn')[i].disabled = false;
-                document.getElementById(`digit-${i}`).classList.remove('green');
-                startSlotSpinning(i);
-            }
+  function stopSlot(i) {
+    if (!gameActive) return;
+    const s = slots[i];
+    if (s.locked || !s.rolling) return;
 
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('time-left').innerText = timeLeft;
-                if(timeLeft <= 0) endGame(false);
-            }, 1000);
-        }
+    clearInterval(s.interval);
+    s.rolling = false;
+    s.locked  = true;
 
-        function startSlotSpinning(i) {
-            slotIntervals[i] = setInterval(() => {
-                let randomDigit = Math.floor(Math.random() * 10);
-                let digitEl = document.getElementById(`digit-${i}`);
-                digitEl.innerText = randomDigit;
-                
-                // Шанс 20%, что цифра станет зеленой
-                if(Math.random() > 0.8) {
-                    digitEl.classList.add('green');
-                } else {
-                    digitEl.classList.remove('green');
-                }
-            }, 100);
-        }
+    const cd = document.getElementById(`cd${i}`);
+    const sb = document.getElementById(`sb${i}`);
 
-        function stopSlot(i) {
-            if(!isGameRunning || isStopped[i]) return;
+    if (s.isGreen) {
+      cd.className   = 'char-display locked';
+      sb.className   = 'stop-btn locked-state';
+      sb.textContent = '✓';
+      locked++;
+      setProgress();
+      if (locked === TOTAL) setTimeout(() => gameWin(), 300);
+    } else {
+      cd.className   = 'char-display rolling';
+      sb.textContent = 'СТОП';
+      setTimeout(() => {
+        resetSlots();
+        setStatus('⚠ ПРОМАХ! СБРОС...');
+        setTimeout(() => { if (gameActive) setStatus('ОСТАНОВИ НА ЗЕЛЁНОМ СИМВОЛЕ'); }, 700);
+      }, 150);
+    }
+  }
 
-            const digitEl = document.getElementById(`digit-${i}`);
-            
-            if(digitEl.classList.contains('green')) {
-                clearInterval(slotIntervals[i]);
-                isStopped[i] = true;
-                document.querySelectorAll('.stop-btn')[i].disabled = true;
-                slotsFinished++;
-                
-                if(slotsFinished === 5) endGame(true);
-            } else {
-                // Если нажал не на зеленую - штраф или просто не срабатывает
-                digitEl.style.color = 'red';
-                setTimeout(() => { if(!isStopped[i]) digitEl.style.color = ''; }, 200);
-            }
-        }
+  function resetSlots() {
+    locked = 0;
+    setProgress();
+    slots.forEach((s, i) => {
+      if (!gameActive) return;
+      clearInterval(s.interval);
+      s.locked = false; s.rolling = false;
+      const cd = document.getElementById(`cd${i}`);
+      const sb = document.getElementById(`sb${i}`);
+      cd.className   = 'char-display rolling';
+      sb.className   = 'stop-btn';
+      sb.textContent = 'СТОП';
+      setTimeout(() => { if (gameActive) startSlot(i); }, 300 + i * 80);
+    });
+  }
 
-        function endGame(isWin) {
-            isGameRunning = false;
-            clearInterval(timerInterval);
-            slotIntervals.forEach(interval => clearInterval(interval));
+  function endGame() {
+    gameActive = false;
+    clearInterval(timerInt);
+    slots.forEach(s => clearInterval(s.interval));
+  }
 
-            if(isWin) {
-                currentWin = Math.floor(Math.random() * (200 - 50 + 1)) + 50;
-                showModal(`Вы взломали систему! Выигрыш: ${currentWin}$`);
-            } else {
-                alert("Время вышло! Полиция едет!");
-                location.reload(); 
-            }
-        }
+  // ===== ПОБЕДА =====
+  function gameWin() {
+    endGame();
+    pendingReward = Math.floor(Math.random() * 201) + 50; // $50–$250
 
-        function showModal(text) {
-            document.getElementById('modal-text').innerText = text;
-            document.getElementById('modal').style.display = 'block';
-            document.getElementById('overlay').style.display = 'block';
-        }
+    document.getElementById('result-title').className   = 'result-title success';
+    document.getElementById('result-title').textContent = '✓ ВЗЛОМАНО';
+    document.getElementById('result-reward').className  = 'result-reward win';
+    document.getElementById('result-reward').textContent = `+$${pendingReward}`;
+    document.getElementById('result-sub').textContent   = `ТАЧКА УГНАНА // ${GAMETIME - timeLeft} СЕК`;
 
-        function collectMoney() {
-            balance += currentWin;
-            updateBalanceDisplay();
-            closeModal();
-            document.getElementById('start-btn').style.display = 'inline-block';
-        }
+    const btns = document.getElementById('result-btns');
+    btns.innerHTML = `
+      <button class="btn-claim" id="btn-claim">💰 ЗАБРАТЬ $${pendingReward}</button>
+      <button class="btn-again" id="btn-again">🔄 ЕЩЁ РАЗ</button>
+    `;
 
-        function resetForNewGame() {
-            balance += currentWin;
-            updateBalanceDisplay();
-            closeModal();
-            startGame();
-        }
+    document.getElementById('btn-claim').addEventListener('touchend', (e) => { e.preventDefault(); claimReward(); });
+    document.getElementById('btn-claim').addEventListener('click', claimReward);
+    document.getElementById('btn-again').addEventListener('touchend', (e) => { e.preventDefault(); playAgain(); });
+    document.getElementById('btn-again').addEventListener('click', playAgain);
 
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-            document.getElementById('overlay').style.display = 'none';
-        }
+    showScreen('screen-result');
+  }
 
-        function updateBalanceDisplay() {
-            document.getElementById('total-balance').innerText = balance;
-        }
-    </script>
+  // ===== ПОРАЖЕНИЕ =====
+  function gameFail() {
+    endGame();
+    const fine = Math.floor(Math.random() * 151) + 50; // $50–$200
+
+    document.getElementById('result-title').className   = 'result-title fail';
+    document.getElementById('result-title').textContent = '✗ ПОЙМАЛИ';
+    document.getElementById('result-reward').className  = 'result-reward fail';
+    document.getElementById('result-reward').textContent = `-$${fine}`;
+    document.getElementById('result-sub').textContent   = 'ПОЛИЦИЯ ПОДЪЕХАЛА';
+
+    const btns = document.getElementById('result-btns');
+    btns.innerHTML = `<button class="btn-retry" id="btn-retry">↺ СНОВА</button>`;
+
+    document.getElementById('btn-retry').addEventListener('touchend', (e) => { e.preventDefault(); playAgain(); });
+    document.getElementById('btn-retry').addEventListener('click', playAgain);
+
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.sendData(JSON.stringify({ action:'carjack', success:false, fine }));
+    }
+
+    showScreen('screen-result');
+  }
+
+  // ===== ЗАБРАТЬ =====
+  function claimReward() {
+    if (claimed) return;
+    claimed = true;
+    document.getElementById('result-btns').innerHTML =
+      `<div style="color:var(--dgreen);font-size:12px;letter-spacing:2px;text-align:center">✓ ОТПРАВЛЕНО В БОТ...</div>`;
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.sendData(JSON.stringify({
+        action:'carjack', success:true, reward:pendingReward, time: GAMETIME - timeLeft
+      }));
+    } else {
+      alert(`Награда $${pendingReward}`);
+    }
+  }
+
+  // ===== ИГРАТЬ ЕЩЁ =====
+  function playAgain() {
+    claimed = false;
+    pendingReward = 0;
+    document.getElementById('slots-container').innerHTML = '';
+    document.getElementById('timer').textContent = '30';
+    document.getElementById('timer').className   = '';
+    showScreen('screen-start');
+  }
+</script>
 </body>
 </html>
