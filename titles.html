@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Титулы</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0f1a;
+            --bg2: #151827;
+            --bg3: #1e2236;
+            --border: rgba(255,255,255,0.07);
+            --text: #e8eaf0;
+            --muted: rgba(255,255,255,0.4);
+            --gold: #f0c040;
+            --green: #3ddc84;
+
+            /* редкости */
+            --c-common:   #9ea8b8;
+            --c-uncommon: #3ddc84;
+            --c-rare:     #4da8ff;
+            --c-epic:     #c97aff;
+            --c-legendary:#f0c040;
+
+            --bg-common:   rgba(158,168,184,0.10);
+            --bg-uncommon: rgba(61,220,132,0.10);
+            --bg-rare:     rgba(77,168,255,0.10);
+            --bg-epic:     rgba(201,122,255,0.10);
+            --bg-legendary:rgba(240,192,64,0.10);
+
+            --border-common:   rgba(158,168,184,0.25);
+            --border-uncommon: rgba(61,220,132,0.25);
+            --border-rare:     rgba(77,168,255,0.25);
+            --border-epic:     rgba(201,122,255,0.25);
+            --border-legendary:rgba(240,192,64,0.35);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #1a1030 0%, #0d1a2e 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 16px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), #e07800);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Oswald', sans-serif;
+            font-size: 18px; font-weight: 700;
+            color: #1a0800; flex-shrink: 0;
+            box-shadow: 0 0 0 2px rgba(240,192,64,0.3);
+            overflow: hidden;
+        }
+        .header-info { flex: 1; }
+        .header-nick {
+            font-family: 'Oswald', sans-serif;
+            font-size: 20px; font-weight: 700;
+            color: var(--gold); letter-spacing: 0.5px; line-height: 1;
+        }
+        .header-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+        .header-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+        .stat-pill {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 20px; padding: 5px 12px;
+            font-size: 12px; font-weight: 600;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .stat-pill.active-title {
+            color: var(--gold);
+            border-color: rgba(240,192,64,0.3);
+            background: rgba(240,192,64,0.08);
+            max-width: 200px; overflow: hidden;
+        }
+        .stat-pill.active-title span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stat-pill.owned { color: var(--green); border-color: rgba(61,220,132,0.2); }
+        .stat-pill.total { color: var(--muted); }
+
+        /* TABS */
+        .tabs {
+            display: flex; gap: 6px;
+            padding: 12px 16px;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto; scrollbar-width: none;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab {
+            flex-shrink: 0; padding: 7px 14px;
+            border-radius: 20px; font-size: 12px; font-weight: 600;
+            cursor: pointer; border: 1px solid var(--border);
+            background: transparent; color: var(--muted);
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .tab.active { background: var(--gold); color: #1a0800; border-color: var(--gold); }
+        .tab.tab-common   { --tac: var(--c-common);   }
+        .tab.tab-uncommon { --tac: var(--c-uncommon); }
+        .tab.tab-rare     { --tac: var(--c-rare);     }
+        .tab.tab-epic     { --tac: var(--c-epic);     }
+        .tab.tab-legendary{ --tac: var(--c-legendary);}
+        .tab.active-rarity {
+            background: var(--tac);
+            color: #0d0f1a;
+            border-color: var(--tac);
+        }
+
+        /* CONTENT */
+        .content { padding: 12px 16px 100px; }
+        .rarity-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 13px; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            margin: 16px 0 10px;
+        }
+        .rarity-title.common   { color: var(--c-common); }
+        .rarity-title.uncommon { color: var(--c-uncommon); }
+        .rarity-title.rare     { color: var(--c-rare); }
+        .rarity-title.epic     { color: var(--c-epic); }
+        .rarity-title.legendary{ color: var(--c-legendary); }
+
+        /* EMPTY */
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            color: rgba(255,255,255,0.3);
+        }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state .empty-title { font-family: 'Oswald', sans-serif; font-size: 18px; margin-bottom: 8px; }
+        .empty-state .empty-sub { font-size: 13px; }
+
+        /* CARD */
+        .title-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px;
+            margin-bottom: 10px;
+            display: flex; gap: 12px; align-items: flex-start;
+            cursor: pointer; transition: all 0.2s;
+            position: relative; overflow: hidden;
+        }
+        .title-card:active { transform: scale(0.98); }
+
+        /* цветные карточки по редкости */
+        .title-card.common   { border-color: var(--border-common);   background: linear-gradient(135deg, var(--bg-common) 0%, var(--bg2) 60%); }
+        .title-card.uncommon { border-color: var(--border-uncommon); background: linear-gradient(135deg, var(--bg-uncommon) 0%, var(--bg2) 60%); }
+        .title-card.rare     { border-color: var(--border-rare);     background: linear-gradient(135deg, var(--bg-rare) 0%, var(--bg2) 60%); }
+        .title-card.epic     { border-color: var(--border-epic);     background: linear-gradient(135deg, var(--bg-epic) 0%, var(--bg2) 60%); }
+        .title-card.legendary{ border-color: var(--border-legendary);background: linear-gradient(135deg, var(--bg-legendary) 0%, var(--bg2) 60%); }
+
+        /* полоска сверху у owned */
+        .title-card.owned::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+        }
+        .title-card.owned.common::before   { background: linear-gradient(90deg, var(--c-common), transparent); }
+        .title-card.owned.uncommon::before { background: linear-gradient(90deg, var(--c-uncommon), transparent); }
+        .title-card.owned.rare::before     { background: linear-gradient(90deg, var(--c-rare), transparent); }
+        .title-card.owned.epic::before     { background: linear-gradient(90deg, var(--c-epic), transparent); }
+        .title-card.owned.legendary::before{ background: linear-gradient(90deg, var(--c-legendary), transparent); }
+
+        /* иконка */
+        .title-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+        }
+        .title-card.common   .title-icon { background: var(--bg-common);   border-color: var(--border-common);   }
+        .title-card.uncommon .title-icon { background: var(--bg-uncommon); border-color: var(--border-uncommon); }
+        .title-card.rare     .title-icon { background: var(--bg-rare);     border-color: var(--border-rare);     }
+        .title-card.epic     .title-icon { background: var(--bg-epic);     border-color: var(--border-epic);     }
+        .title-card.legendary .title-icon{ background: var(--bg-legendary);border-color: var(--border-legendary);}
+
+        .title-body { flex: 1; min-width: 0; }
+        .title-top {
+            display: flex; align-items: flex-start;
+            justify-content: space-between; gap: 8px; margin-bottom: 4px;
+        }
+        .title-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 15px; font-weight: 600; line-height: 1.2;
+        }
+        .rarity-badge {
+            flex-shrink: 0; font-size: 10px; font-weight: 700;
+            padding: 3px 8px; border-radius: 10px; letter-spacing: 0.5px;
+        }
+        .rarity-badge.common   { background: var(--bg-common);   color: var(--c-common);   border: 1px solid var(--border-common);   }
+        .rarity-badge.uncommon { background: var(--bg-uncommon); color: var(--c-uncommon); border: 1px solid var(--border-uncommon); }
+        .rarity-badge.rare     { background: var(--bg-rare);     color: var(--c-rare);     border: 1px solid var(--border-rare);     }
+        .rarity-badge.epic     { background: var(--bg-epic);     color: var(--c-epic);     border: 1px solid var(--border-epic);     }
+        .rarity-badge.legendary{ background: var(--bg-legendary);color: var(--c-legendary);border: 1px solid var(--border-legendary);}
+
+        .title-desc { font-size: 12px; color: var(--muted); line-height: 1.4; margin-bottom: 8px; }
+        .title-footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .status-tag {
+            font-size: 11px; font-weight: 600; padding: 3px 8px;
+            border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;
+        }
+        .status-tag.owned   { background: rgba(61,220,132,0.12); color: var(--green); border: 1px solid rgba(61,220,132,0.25); }
+        .status-tag.active  { background: rgba(240,192,64,0.12); color: var(--gold);  border: 1px solid rgba(240,192,64,0.3); }
+        .status-tag.locked  { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+        .equip-hint { font-size: 11px; color: var(--muted); }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75); z-index: 200;
+            display: flex; align-items: flex-end;
+            opacity: 0; pointer-events: none; transition: opacity 0.25s;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: all; }
+        .modal {
+            background: var(--bg3); border-radius: 20px 20px 0 0;
+            border-top: 1px solid var(--border); padding: 20px 20px 44px;
+            width: 100%;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .modal-overlay.show .modal { transform: translateY(0); }
+        .modal-handle {
+            width: 36px; height: 4px; background: rgba(255,255,255,0.15);
+            border-radius: 2px; margin: 0 auto 20px;
+        }
+        .modal-icon {
+            width: 72px; height: 72px; border-radius: 18px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 34px; margin: 0 auto 16px;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+        }
+        .modal-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 24px; font-weight: 700;
+            text-align: center; margin-bottom: 6px;
+        }
+        .modal-rarity-row { text-align: center; margin-bottom: 12px; }
+        .modal-desc {
+            font-size: 14px; color: rgba(255,255,255,0.7);
+            text-align: center; line-height: 1.6; margin-bottom: 20px;
+        }
+        .modal-status {
+            padding: 10px 16px; border-radius: 12px;
+            font-size: 13px; font-weight: 600; margin-bottom: 20px;
+            display: flex; justify-content: center; align-items: center; gap: 6px;
+        }
+        .modal-status.owned  { background: rgba(61,220,132,0.12); color: var(--green); border: 1px solid rgba(61,220,132,0.25); }
+        .modal-status.active { background: rgba(240,192,64,0.1);  color: var(--gold);  border: 1px solid rgba(240,192,64,0.25); }
+        .modal-status.locked { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+
+        .modal-how-title {
+            font-size: 11px; color: var(--muted);
+            letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px;
+        }
+        .modal-how {
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            border-radius: 10px; padding: 12px;
+            font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .equip-btn {
+            width: 100%; padding: 15px;
+            border-radius: 12px; font-size: 15px; font-weight: 700;
+            cursor: pointer; font-family: 'Oswald', sans-serif;
+            letter-spacing: 0.5px; border: none; transition: all 0.15s;
+        }
+        .equip-btn:active { transform: scale(0.97); }
+        .equip-btn.can-equip {
+            background: var(--gold); color: #1a0800;
+        }
+        .equip-btn.is-active {
+            background: rgba(61,220,132,0.15); color: var(--green);
+            border: 1px solid rgba(61,220,132,0.3);
+        }
+        .equip-btn.is-active:active { transform: none; cursor: default; }
+        .equip-btn.locked-btn {
+            background: rgba(255,255,255,0.05); color: var(--muted);
+            border: 1px solid var(--border); cursor: default;
+        }
+        .close-btn {
+            width: 100%; margin-top: 10px; padding: 13px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text); font-size: 14px; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-top">
+        <div class="avatar" id="avatarEl"></div>
+        <div class="header-info">
+            <div class="header-nick" id="nickEl">—</div>
+            <div class="header-sub">Гангстерский Мир — Титулы</div>
+        </div>
+    </div>
+    <div class="header-stats">
+        <div class="stat-pill active-title" id="activePill">👑 <span id="activeTitleName">—</span></div>
+        <div class="stat-pill owned">🏷️ <span id="ownedCount">0</span> получено</div>
+        <div class="stat-pill total">📋 <span id="totalCount">0</span> всего</div>
+    </div>
+</div>
+
+<div class="tabs" id="tabsEl"></div>
+<div class="content" id="contentEl"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+    <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-icon" id="mIcon"></div>
+        <div class="modal-name" id="mName"></div>
+        <div class="modal-rarity-row"><span class="rarity-badge" id="mRarityBadge"></span></div>
+        <div class="modal-desc" id="mDesc"></div>
+        <div class="modal-status" id="mStatus"></div>
+        <div class="modal-how-title">📖 КАК ПОЛУЧИТЬ</div>
+        <div class="modal-how" id="mHow"></div>
+        <button class="equip-btn" id="mEquipBtn"></button>
+        <button class="close-btn" onclick="closeModalBtn()">Закрыть</button>
+    </div>
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    const params = new URLSearchParams(window.location.search);
+    const NICKNAME = params.get('nick') || 'Игрок';
+    const photoUrl  = params.get('photo');
+    const ownedIds  = new Set((params.get('owned') || '').split(',').filter(Boolean).map(Number));
+    let   activeId  = Number(params.get('active') || 0);
+
+    let TITLES = [];
+    try { TITLES = JSON.parse(params.get('titles') || '[]'); } catch(e) { TITLES = []; }
+
+    TITLES.forEach(t => {
+        t.owned  = ownedIds.has(t.id);
+        t.active = t.id === activeId;
+    });
+
+    // Аватарка
+    const avatarEl = document.getElementById('avatarEl');
+    if (photoUrl) {
+        avatarEl.innerHTML = `<img src="${photoUrl}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">`;
+    } else {
+        avatarEl.textContent = NICKNAME.charAt(0).toUpperCase();
+    }
+    document.getElementById('nickEl').textContent = NICKNAME;
+
+    // Хелперы редкостей
+    const RARITY_ORDER   = ['common','uncommon','rare','epic','legendary'];
+    const RARITY_LABELS  = { common:'Обычный', uncommon:'Необычный', rare:'Редкий', epic:'Эпический', legendary:'Легендарный' };
+    const RARITY_ICONS   = { common:'⚪', uncommon:'🟢', rare:'🔵', epic:'🟣', legendary:'🟡' };
+
+    function updateHeader() {
+        const act = TITLES.find(t => t.active);
+        document.getElementById('ownedCount').textContent  = TITLES.filter(t => t.owned).length;
+        document.getElementById('totalCount').textContent  = TITLES.length;
+        const activePill = document.getElementById('activePill');
+        if (act) {
+            document.getElementById('activeTitleName').textContent = act.name;
+            activePill.style.display = '';
+        } else {
+            activePill.style.display = 'none';
+        }
+    }
+    updateHeader();
+
+    // Табы
+    const rarities = RARITY_ORDER.filter(r => TITLES.some(t => t.rarity === r));
+    const TABS = rarities.length > 1 ? ['Все', ...rarities] : (rarities.length === 1 ? [rarities[0]] : []);
+    let activeTab = TABS[0] || 'Все';
+
+    const tabsEl = document.getElementById('tabsEl');
+    TABS.forEach(r => {
+        const t = document.createElement('div');
+        const isRarity = r !== 'Все';
+        t.className = 'tab' + (isRarity ? ` tab-${r}` : '') + (r === activeTab ? (isRarity ? ' active-rarity' : ' active') : '');
+        t.textContent = isRarity ? `${RARITY_ICONS[r]} ${RARITY_LABELS[r]}` : 'Все';
+        t.onclick = () => {
+            activeTab = r;
+            document.querySelectorAll('.tab').forEach(x => x.classList.remove('active','active-rarity'));
+            t.classList.add(isRarity ? 'active-rarity' : 'active');
+            renderContent();
+        };
+        tabsEl.appendChild(t);
+    });
+
+    // Карточка
+    function makeCard(t) {
+        const card = document.createElement('div');
+        const cls  = ['title-card', t.rarity || 'common'];
+        if (t.owned) cls.push('owned');
+        card.className = cls.join(' ');
+        card.onclick = () => openModal(t);
+
+        let statusHtml;
+        if (t.active) {
+            statusHtml = `<span class="status-tag active">👑 АКТИВЕН</span>`;
+        } else if (t.owned) {
+            statusHtml = `<span class="status-tag owned">✅ ПОЛУЧЕН</span><span class="equip-hint">Нажми, чтобы надеть</span>`;
+        } else {
+            statusHtml = `<span class="status-tag locked">🔒 НЕ ПОЛУЧЕН</span>`;
+        }
+
+        card.innerHTML = `
+            <div class="title-icon">${t.icon || '🏷️'}</div>
+            <div class="title-body">
+                <div class="title-top">
+                    <div class="title-name">${t.name}</div>
+                    <div class="rarity-badge ${t.rarity || 'common'}">${RARITY_LABELS[t.rarity] || 'Обычный'}</div>
+                </div>
+                <div class="title-desc">${t.desc || ''}</div>
+                <div class="title-footer">${statusHtml}</div>
+            </div>
+        `;
+        return card;
+    }
+
+    // Рендер
+    function renderContent() {
+        const contentEl = document.getElementById('contentEl');
+        contentEl.innerHTML = '';
+
+        if (!TITLES.length) {
+            contentEl.innerHTML = `<div class="empty-state"><div class="empty-icon">😔</div><div class="empty-title">Пока пусто...</div><div class="empty-sub">Титулы ещё не добавлены</div></div>`;
+            return;
+        }
+
+        const filtered = (activeTab === 'Все') ? TITLES : TITLES.filter(t => t.rarity === activeTab);
+
+        if (!filtered.length) {
+            contentEl.innerHTML = `<div class="empty-state"><div class="empty-icon">😔</div><div class="empty-title">Пока пусто :(</div><div class="empty-sub">Нет титулов этой редкости</div></div>`;
+            return;
+        }
+
+        if (activeTab === 'Все') {
+            rarities.forEach(r => {
+                const items = TITLES.filter(t => t.rarity === r);
+                if (!items.length) return;
+                const title = document.createElement('div');
+                title.className = `rarity-title ${r}`;
+                title.textContent = `${RARITY_ICONS[r]} ${RARITY_LABELS[r]}`;
+                contentEl.appendChild(title);
+                items.forEach(t => contentEl.appendChild(makeCard(t)));
+            });
+        } else {
+            filtered.forEach(t => contentEl.appendChild(makeCard(t)));
+        }
+    }
+
+    // Текущий открытый титул в модалке
+    let currentModal = null;
+
+    function openModal(t) {
+        currentModal = t;
+
+        // иконка
+        const mIcon = document.getElementById('mIcon');
+        mIcon.className = `modal-icon`;
+        mIcon.style.background = `var(--bg-${t.rarity || 'common'})`;
+        mIcon.style.borderColor = `var(--border-${t.rarity || 'common'})`;
+        mIcon.textContent = t.icon || '🏷️';
+
+        document.getElementById('mName').textContent = t.name;
+
+        // бейдж редкости
+        const rb = document.getElementById('mRarityBadge');
+        rb.className = `rarity-badge ${t.rarity || 'common'}`;
+        rb.textContent = `${RARITY_ICONS[t.rarity] || ''} ${RARITY_LABELS[t.rarity] || 'Обычный'}`;
+
+        document.getElementById('mDesc').textContent = t.desc || '';
+        document.getElementById('mHow').textContent  = t.how  || 'Информация не указана';
+
+        // статус
+        const ms = document.getElementById('mStatus');
+        if (t.active) {
+            ms.className = 'modal-status active';
+            ms.textContent = '👑 Этот титул сейчас активен';
+        } else if (t.owned) {
+            ms.className = 'modal-status owned';
+            ms.textContent = '✅ Ты получил этот титул';
+        } else {
+            ms.className = 'modal-status locked';
+            ms.textContent = '🔒 Титул ещё не получен';
+        }
+
+        // кнопка экипировки
+        const btn = document.getElementById('mEquipBtn');
+        if (t.active) {
+            btn.className = 'equip-btn is-active';
+            btn.textContent = '👑 АКТИВНЫЙ ТИТУЛ';
+            btn.onclick = null;
+        } else if (t.owned) {
+            btn.className = 'equip-btn can-equip';
+            btn.textContent = 'НАДЕТЬ ТИТУЛ';
+            btn.onclick = () => equipTitle(t.id);
+        } else {
+            btn.className = 'equip-btn locked-btn';
+            btn.textContent = '🔒 ТИТУЛ НЕ ПОЛУЧЕН';
+            btn.onclick = null;
+        }
+
+        document.getElementById('modalOverlay').classList.add('show');
+    }
+
+    function equipTitle(id) {
+        // Сбрасываем прошлый активный
+        TITLES.forEach(t => { t.active = t.id === id; });
+        activeId = id;
+
+        updateHeader();
+        renderContent();
+
+        // Уведомляем бот через MainButton или sendData
+        if (tg.sendData) {
+            try { tg.sendData(JSON.stringify({ action: 'equip_title', id })); } catch(e) {}
+        }
+
+        // Обновляем модалку
+        const t = TITLES.find(x => x.id === id);
+        if (t) openModal(t);
+    }
+
+    function closeModalOutside(e) {
+        if (e.target === document.getElementById('modalOverlay'))
+            document.getElementById('modalOverlay').classList.remove('show');
+    }
+    function closeModalBtn() {
+        document.getElementById('modalOverlay').classList.remove('show');
+    }
+
+    renderContent();
+</script>
+</body>
+</html>
