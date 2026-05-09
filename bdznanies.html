@@ -24,10 +24,8 @@
 html{scroll-behavior:smooth}
 body{font-family:'Inter',sans-serif;background:var(--dark);color:var(--white);min-height:100vh;overflow-x:hidden}
 
-/* ---- NOISE OVERLAY ---- */
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4}
 
-/* ---- HEADER ---- */
 .header{position:sticky;top:0;z-index:100;background:rgba(10,10,10,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border-red)}
 .header-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:20px;height:64px}
 .logo{display:flex;align-items:center;gap:12px;text-decoration:none;flex-shrink:0}
@@ -41,7 +39,9 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .header-search .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--gray2);font-size:14px}
 .header-right{margin-left:auto;font-family:'Oswald',sans-serif;font-size:12px;color:var(--gray2);letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
 
-/* ---- HERO ---- */
+/* Search highlight */
+.search-highlight{background:rgba(192,21,42,0.3);border-radius:2px;padding:0 2px;color:#fff}
+
 .hero{position:relative;overflow:hidden;padding:60px 24px 50px;text-align:center;background:linear-gradient(180deg,rgba(192,21,42,0.08) 0%,transparent 100%)}
 .hero::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:1px;background:linear-gradient(90deg,transparent,var(--red),transparent)}
 .hero-tag{display:inline-block;font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--red3);border:1px solid var(--border-red);padding:4px 16px;border-radius:2px;margin-bottom:20px}
@@ -53,11 +53,9 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .hero-stat-num{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--red3);letter-spacing:2px;display:block;line-height:1}
 .hero-stat-label{font-size:11px;color:var(--gray2);letter-spacing:1px;text-transform:uppercase;font-family:'Oswald',sans-serif}
 
-/* ---- MAIN LAYOUT ---- */
 .main{max-width:1200px;margin:0 auto;padding:40px 24px 80px;display:grid;grid-template-columns:240px 1fr;gap:32px}
 @media(max-width:768px){.main{grid-template-columns:1fr}.sidebar{display:none}}
 
-/* ---- SIDEBAR ---- */
 .sidebar{position:sticky;top:80px;height:fit-content}
 .sidebar-title{font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gray2);margin-bottom:12px;padding-left:4px}
 .cat-list{display:flex;flex-direction:column;gap:2px}
@@ -69,13 +67,16 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .cat-item.active .cat-count{background:rgba(192,21,42,0.3);color:var(--red3)}
 .sidebar-divider{height:1px;background:var(--border);margin:16px 0}
 
-/* ---- CONTENT ---- */
-.content-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:gap}
+/* Search results hint */
+.search-banner{background:rgba(192,21,42,0.08);border:1px solid var(--border-red);border-radius:6px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--gray);display:none}
+.search-banner.visible{display:block}
+.search-banner strong{color:var(--red3)}
+
+.content-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:8px}
 .content-title{font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;letter-spacing:1px}
 .content-title span{color:var(--red)}
 .results-count{font-size:12px;color:var(--gray2);font-family:'Oswald',sans-serif;letter-spacing:1px;text-transform:uppercase}
 
-/* ---- ARTICLES GRID ---- */
 .articles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
 .article-card{background:var(--dark2);border:1px solid var(--border);border-radius:6px;padding:20px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;text-decoration:none;display:block}
 .article-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform 0.25s}
@@ -94,21 +95,6 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .card-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .card-tag{font-size:10px;padding:2px 8px;border-radius:2px;background:var(--dark4);color:var(--gray2);border:1px solid var(--border);font-family:'Oswald',sans-serif;letter-spacing:0.5px}
 
-/* ---- FEATURED ARTICLE (big) ---- */
-.article-card.big{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center}
-@media(max-width:600px){.article-card.big{grid-template-columns:1fr}}
-.big-content{}
-.big-label{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--red3);margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.big-label::before{content:'';display:inline-block;width:20px;height:1px;background:var(--red)}
-.big-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,4vw,44px);letter-spacing:2px;line-height:1;margin-bottom:12px;color:var(--white)}
-.big-desc{font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:16px}
-.big-stats{display:flex;gap:16px;flex-wrap:wrap}
-.big-stat{font-family:'Oswald',sans-serif;font-size:12px;color:var(--gray2);display:flex;align-items:center;gap:4px}
-.big-stat span{color:var(--white);font-weight:600}
-.big-visual{background:var(--dark4);border-radius:4px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:80px;height:160px;position:relative;overflow:hidden}
-.big-visual::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(192,21,42,0.15),transparent 70%)}
-
-/* ---- ACCORDION / FULL ARTICLE ---- */
 .article-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
 .article-overlay.open{display:flex}
 .article-modal{background:var(--dark2);border:1px solid var(--border-red);border-radius:8px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;position:relative}
@@ -124,38 +110,35 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .info-box{background:var(--dark3);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:0 4px 4px 0;padding:12px 16px;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:12px}
 .warn-box{background:rgba(255,100,0,0.08);border:1px solid rgba(255,100,0,0.2);border-left:3px solid #ff6400;border-radius:0 4px 4px 0;padding:12px 16px;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:12px}
 .tip-box{background:rgba(0,180,120,0.08);border:1px solid rgba(0,180,120,0.2);border-left:3px solid #00c87a;border-radius:0 4px 4px 0;padding:12px 16px;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:12px}
-.steps{list-style:none;counter-reset:steps}
+.steps{list-style:none;counter-reset:steps;margin-bottom:12px}
 .steps li{counter-increment:steps;display:flex;gap:12px;margin-bottom:12px;font-size:13px;color:var(--gray);line-height:1.6}
 .steps li::before{content:counter(steps);flex-shrink:0;width:24px;height:24px;background:var(--red);color:var(--white);border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;margin-top:1px}
-.cmd-list{display:flex;flex-direction:column;gap:6px}
+.cmd-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
 .cmd-item{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:var(--dark3);border-radius:4px;border:1px solid var(--border)}
 .cmd-code{font-family:'Courier New',monospace;font-size:12px;color:var(--red3);background:rgba(192,21,42,0.1);padding:2px 8px;border-radius:3px;white-space:nowrap;flex-shrink:0}
 .cmd-desc{font-size:12px;color:var(--gray);line-height:1.5}
-.reward-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.reward-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:12px}
 .reward-item{background:var(--dark3);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center}
 .reward-icon{font-size:20px;margin-bottom:4px}
 .reward-val{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;color:var(--white);display:block}
 .reward-label{font-size:10px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px}
 
-/* ---- EMPTY ---- */
+/* RP table */
+.rp-table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:12px}
+.rp-table th{background:var(--dark4);color:var(--gray2);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:8px 12px;border:1px solid var(--border);text-align:left}
+.rp-table td{padding:7px 12px;border:1px solid var(--border);color:var(--gray);vertical-align:top}
+.rp-table tr:hover td{background:var(--dark3)}
+
 .empty{text-align:center;padding:60px 20px;color:var(--gray2)}
 .empty-icon{font-size:48px;margin-bottom:16px;opacity:0.5}
 .empty-title{font-family:'Oswald',sans-serif;font-size:20px;color:var(--gray);margin-bottom:8px;letter-spacing:1px}
 
-/* ---- SCROLLBAR ---- */
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:var(--dark)}
 ::-webkit-scrollbar-thumb{background:var(--red);border-radius:2px}
 
-/* ---- ANIMATIONS ---- */
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .article-card{animation:fadeUp 0.4s ease both}
-.article-card:nth-child(1){animation-delay:0.05s}
-.article-card:nth-child(2){animation-delay:0.1s}
-.article-card:nth-child(3){animation-delay:0.15s}
-.article-card:nth-child(4){animation-delay:0.2s}
-.article-card:nth-child(5){animation-delay:0.25s}
-.article-card:nth-child(6){animation-delay:0.3s}
 </style>
 </head>
 <body>
@@ -183,7 +166,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
   <p>Всё что нужно знать начинающему и опытному гангстеру. Команды, механики, гайды и советы.</p>
   <div class="hero-stats">
     <div class="hero-stat"><span class="hero-stat-num" id="statTotal">0</span><span class="hero-stat-label">Статей</span></div>
-    <div class="hero-stat"><span class="hero-stat-num">6</span><span class="hero-stat-label">Категорий</span></div>
+    <div class="hero-stat"><span class="hero-stat-num">7</span><span class="hero-stat-label">Категорий</span></div>
     <div class="hero-stat"><span class="hero-stat-num">∞</span><span class="hero-stat-label">Возможностей</span></div>
   </div>
 </section>
@@ -202,6 +185,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
   </aside>
 
   <div>
+    <div class="search-banner" id="searchBanner"></div>
     <div class="content-header">
       <div class="content-title" id="contentTitle">Все статьи</div>
       <div class="results-count" id="resultsCount"></div>
@@ -223,152 +207,383 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 
 <script>
 const ARTICLES = [
+  // ─── СТАРТ ───────────────────────────────────────────────
   {
     id: 1, cat: "Старт", icon: "🚀", title: "Начало игры", badge: "tip",
     desc: "Первые шаги в Гангстерском Мире. С чего начать и как не сдохнуть с голоду.",
-    tags: ["регистрация","старт","новичок"], featured: true,
+    tags: ["регистрация","старт","новичок","первые шаги","start","ник","никнейм"],
     content: {
       sections: [
         { type: "info", text: "Добро пожаловать в Гангстерский Мир. Здесь каждый начинает с нуля — и добивается всего своим умом, нахальством и трудолюбием." },
         { type: "heading", text: "Как зарегистрироваться" },
-        { type: "steps", items: ["Напиши боту /start в личных сообщениях", "Придумай уникальный ник (только буквы, цифры, _)", "Выбери пол — Пацан или Дама", "Опиши внешность (минимум 5 символов)", "Получи $50 на стартовый баланс"] },
+        { type: "steps", items: [
+          "Напиши боту /start в личных сообщениях",
+          "Придумай уникальный ник (только буквы, цифры, _)",
+          "Выбери пол — Пацан или Дама",
+          "Опиши внешность (минимум 5 символов)",
+          "Получи $50 на стартовый баланс и выполни квест Пахана"
+        ]},
         { type: "heading", text: "Первые команды" },
         { type: "cmds", items: [
           ["/start","Начать регистрацию"],
           ["Я","Посмотреть свой профиль"],
           ["📋 Меню","Главное меню бота"],
-          ["/сборщик","Первая работа — бутылки"],
-          ["/help","Список команд"]
+          ["/сборщик","Первая работа — собирать бутылки"],
+          ["/help","База знаний и помощь"],
+          ["/ask","Задать вопрос администрации"]
         ]},
         { type: "tip", text: "💡 Совет: Сразу после регистрации выполни квест Пахана — получишь дополнительные деньги и опыт!" }
       ]
     }
   },
   {
-    id: 2, cat: "Работа", icon: "🍾", title: "Сборщик бутылок", badge: null,
-    desc: "Простейший способ заработка. Собирай бутылки на улице и сдавай скупщику.",
-    tags: ["работа","деньги","бутылки"],
+    id: 11, cat: "Старт", icon: "🎁", title: "Бонусы и промокоды", badge: "tip",
+    desc: "Ежедневный бонус, промокоды от Пахана и реферальная система.",
+    tags: ["бонус","промокод","рефералка","халява","реферал","пригласить","друг"],
     content: {
       sections: [
-        { type: "info", text: "Сборщик — первая работа в игре. Доступна всем с самого начала, без ограничений." },
+        { type: "heading", text: "Ежедневный бонус" },
+        { type: "steps", items: [
+          "Открой профиль: нажми Я",
+          "Нажми кнопку 🎁 Бонус под профилем",
+          "Получи случайно от $5 до $25 и 3-10 опыта",
+          "Повтори завтра — бонус раз в 24 часа"
+        ]},
+        { type: "heading", text: "Промокоды" },
+        { type: "cmds", items: [
+          ["📋 Меню → 🎟️ Бонус код","Ввести промокод"],
+          ["Где брать?","Следи за каналом @GangsterWorldNews"]
+        ]},
+        { type: "heading", text: "Реферальная система" },
+        { type: "cmds", items: [
+          ["📋 Меню → 🔗 Рефералка","Получить свою реферальную ссылку"],
+          ["За каждого друга","$100 тебе + $50 новичку"]
+        ]},
+        { type: "tip", text: "💡 Подпишись на официальный канал и получи разовый бонус от $50 до $200!" }
+      ]
+    }
+  },
+  {
+    id: 13, cat: "Старт", icon: "❓", title: "Помощь и поддержка", badge: "tip",
+    desc: "Как задать вопрос администрации и где найти информацию об игре.",
+    tags: ["помощь","поддержка","ask","вопрос","администрация","help","команда","поддержка"],
+    content: {
+      sections: [
+        { type: "info", text: "Если у тебя возник вопрос по игре — не теряйся. Есть несколько способов получить ответ." },
+        { type: "heading", text: "База знаний" },
+        { type: "cmds", items: [
+          ["/help","Открыть базу знаний прямо из бота"],
+          ["❓ Помощь","Кнопка в главной клавиатуре — краткая справка"]
+        ]},
+        { type: "heading", text: "Задать вопрос администрации" },
+        { type: "cmds", items: [
+          ["/ask Твой вопрос","Отправить вопрос администрации"],
+          ["/myasks","Посмотреть свои обращения и ответы на них"]
+        ]},
+        { type: "steps", items: [
+          "Напиши /ask и сразу свой вопрос одним сообщением",
+          "Вопрос уйдёт в группу администрации",
+          "Ответ придёт в личные сообщения с ботом",
+          "Можешь отслеживать статус через /myasks"
+        ]},
+        { type: "warn", text: "⚠️ Между вопросами — перерыв 10 минут. Одно обращение за раз." },
+        { type: "tip", text: "💡 Сначала поищи ответ здесь в базе знаний — большинство вопросов уже освещены!" }
+      ]
+    }
+  },
+
+  // ─── РАБОТА ──────────────────────────────────────────────
+  {
+    id: 2, cat: "Работа", icon: "🍾", title: "Сборщик бутылок", badge: null,
+    desc: "Простейший способ заработка. Собирай бутылки на улице и сдавай скупщику.",
+    tags: ["работа","деньги","бутылки","сборщик","скупщик","заработок"],
+    content: {
+      sections: [
+        { type: "info", text: "Сборщик — первая работа в игре. Доступна всем с самого начала, без ограничений по уровню." },
         { type: "heading", text: "Как работает" },
-        { type: "steps", items: ["Используй команду /сборщик", "Нажми кнопку «Открыть сборщик бутылок»", "Собирай бутылки в мини-игре", "По окончании получишь деньги и опыт", "Сдай бутылки скупщику: /скупщик"] },
+        { type: "steps", items: [
+          "Используй команду /сборщик",
+          "Нажми кнопку «Открыть сборщик бутылок»",
+          "Собирай бутылки в мини-игре",
+          "По окончании получишь опыт (1 бутылка = 1 опыт)",
+          "Сдай бутылки скупщику: /скупщик — $5 за штуку"
+        ]},
         { type: "heading", text: "Награды" },
-        { type: "rewards", items: [["🍾","1","Бутылка = 1 опыт"],["💵","$5","За каждую бутылку у скупщика"]] },
-        { type: "tip", text: "💡 Чем больше соберёшь — тем больше опыта. Хороший способ быстро набрать уровень в начале игры." }
+        { type: "rewards", items: [
+          ["🍾","1 опыт","За каждую бутылку"],
+          ["💵","$5","У скупщика за штуку"]
+        ]},
+        { type: "tip", text: "💡 100 бутылок суммарно — получишь титул «Бутылочник»!" }
       ]
     }
   },
   {
     id: 3, cat: "Работа", icon: "📦", title: "Грузчик", badge: null,
     desc: "Таскай коробки на складе. За каждые 5 коробок — бонус опыта.",
-    tags: ["работа","деньги","коробки"],
+    tags: ["работа","деньги","коробки","грузчик","склад","заработок"],
     content: {
       sections: [
         { type: "info", text: "Работа грузчиком — стабильный заработок. Чем больше коробок перенесёшь, тем жирнее зарплата." },
         { type: "heading", text: "Система наград" },
-        { type: "steps", items: ["Открой мини-игру: /грузчик", "Переноси коробки — каждые 5 дают +5 опыта", "В конце смены получаешь деньги пропорционально количеству коробок"] },
-        { type: "warn", text: "⚠️ Если перенёс 0 коробок — Пахан недоволен и ты получишь только насмешку." }
+        { type: "steps", items: [
+          "Открой мини-игру: /грузчик",
+          "Переноси коробки — каждые 5 дают +5 опыта",
+          "В конце смены получаешь деньги пропорционально количеству коробок"
+        ]},
+        { type: "warn", text: "⚠️ Если перенёс 0 коробок — ничего не получишь." },
+        { type: "tip", text: "💡 Перенеси 5+ коробок за раз — получишь титул «Грузоподъёмник»!" }
       ]
     }
   },
+
+  // ─── КРИМИНАЛ ────────────────────────────────────────────
   {
     id: 4, cat: "Криминал", icon: "🚗", title: "Автоугон", badge: "hot",
-    desc: "Угоняй тачки на парковках. Доступно с 2 уровня. Лимит 10 машин в 6 часов.",
-    tags: ["угон","криминал","авто","деньги"], featured: true,
+    desc: "Угоняй тачки на парковках. Доступно с 2 уровня. Лимит 10 машин за 6 часов.",
+    tags: ["угон","криминал","авто","деньги","автоугон","машина","лимит"],
+    featured: true,
     content: {
       sections: [
         { type: "info", text: "Автоугон — серьёзное дело. Доступно с 2 уровня. Высокий риск — высокая награда." },
         { type: "heading", text: "Правила" },
-        { type: "steps", items: ["Достигни 2 уровня", "Используй /автоугон", "Взламывай замок в мини-игре", "При успехе — барыга заберёт тачку и отсыплет бабок", "При провале — штраф с баланса"] },
-        { type: "heading", text: "Лимиты и кулдаун" },
+        { type: "steps", items: [
+          "Достигни 2 уровня",
+          "Используй /автоугон",
+          "Взламывай замок в мини-игре",
+          "При успехе — барыга заберёт тачку и отсыплет деньги",
+          "При провале — штраф с баланса"
+        ]},
+        { type: "heading", text: "Лимиты" },
         { type: "warn", text: "⚠️ После 10 угнанных машин — обязательный отдых 6 часов. Полиция начинает охоту." },
         { type: "heading", text: "Награды" },
-        { type: "rewards", items: [["💰","$100-500","За угон"],["⭐","10-50","Опыт"],["🚔","штраф","При поимке"]] },
-        { type: "tip", text: "💡 Опыт = reward / 10, но не меньше 10. Угоняй дорогие тачки — получай больше." }
+        { type: "rewards", items: [
+          ["💰","$100–500","За угон"],
+          ["⭐","min 10","Опыт"],
+          ["🚔","штраф","При поимке"]
+        ]},
+        { type: "tip", text: "💡 15 суммарных угонов — получишь титул «Автолюбитель»." }
       ]
     }
   },
+
+  // ─── ЭКОНОМИКА ───────────────────────────────────────────
   {
     id: 5, cat: "Экономика", icon: "💼", title: "Бизнес", badge: "hot",
     desc: "Купи бизнес у Семёна и получай пассивный доход каждый час.",
-    tags: ["бизнес","доход","пассив","семён"],
+    tags: ["бизнес","доход","пассив","семён","sema","продукты","крышевание","школьники"],
     content: {
       sections: [
-        { type: "info", text: "Бизнес — источник пассивного дохода. Купи однажды, получай доход каждый час." },
+        { type: "info", text: "Бизнес — источник пассивного дохода. Купи однажды, получай доход каждый час. Но без продуктов бизнес встанет!" },
         { type: "heading", text: "Доступные бизнесы" },
         { type: "cmds", items: [
           ["Крышевание школьников 🏫","$5,000 — $200/день дохода"]
         ]},
         { type: "heading", text: "Как работает" },
-        { type: "steps", items: ["Иди к Семёну: /сема", "Купи бизнес за бабки", "Каждый час бизнес начисляет доход на счёт бизнеса", "Не забывай пополнять продукты (25 шт./час)", "Если 5 дней нет продуктов — бизнес закрывается!"] },
-        { type: "warn", text: "⚠️ При активной акции x2 доход удваивается автоматически!" },
+        { type: "steps", items: [
+          "Иди к Семёну: /сема",
+          "Купи бизнес за $5,000",
+          "Каждый час бизнес начисляет доход на свой счёт",
+          "Бизнес тратит 25 продуктов в час — пополняй их регулярно",
+          "Не забывай собирать накопленный доход через «💰 Собрать доход»"
+        ]},
+        { type: "warn", text: "⚠️ ВАЖНО: Без продуктов дохода нет. Если продуктов не будет 5 дней (120 часов) — бизнес закроется автоматически!" },
+        { type: "warn", text: "⚠️ При активной акции x2 доход удваивается автоматически." },
         { type: "heading", text: "Управление" },
         { type: "cmds", items: [
           ["💰 Собрать доход","Снять накопленные деньги с бизнеса"],
-          ["📦 Пополнить продукты","100 шт = $500 / 250 шт = $1,000 / 500 шт = $1,800"],
+          ["📦 100 продуктов","$500 — хватит на 4 часа"],
+          ["📦 250 продуктов","$1,000 — хватит на 10 часов"],
+          ["📦 500 продуктов","$1,800 — хватит на 20 часов"],
           ["🗑 Продать","Продать бизнес за 50% от цены покупки"]
-        ]}
+        ]},
+        { type: "tip", text: "💡 Заходи хотя бы раз в день и пополняй продукты. Иначе бизнес закроется и деньги за него не вернут!" }
       ]
     }
   },
   {
     id: 6, cat: "Экономика", icon: "🌿", title: "Ферма и чай", badge: "new",
-    desc: "Посади семена, через 5 часов получи чай и продай Семёну по текущему курсу.",
-    tags: ["ферма","чай","семена","курс"],
+    desc: "Посади семена (с 3 уровня), через 12 часов получи чай и продай Семёну по текущему курсу.",
+    tags: ["ферма","чай","семена","курс","экономика","заработок","сельское хозяйство","растение","выращивать"],
     content: {
       sections: [
-        { type: "info", text: "Ферма — уникальная механика заработка. Покупай семена, выращивай чай, продавай по хорошему курсу." },
+        { type: "info", text: "Ферма — уникальная механика заработка. Покупай семена, выращивай чай, продавай по хорошему курсу. Доступно с 3 уровня!" },
         { type: "heading", text: "Цикл фермы" },
-        { type: "steps", items: ["Получи семена (из игры или от администрации)", "Посади: /ферма → выбери количество", "Жди 5 часов — придёт уведомление", "Получи чай: 1 семя = 2 чая", "Продай чай Семёну: /сема → Продать чай"] },
-        { type: "heading", text: "Курс чая" },
-        { type: "warn", text: "⚠️ Курс чая меняется КАЖДЫЙ ЧАС случайно от $3,000 до $100,000 за штуку! Следи за курсом: /курс" },
-        { type: "tip", text: "💡 Продавай когда курс высокий! Разница между минимумом и максимумом — огромная. Терпение = деньги." },
+        { type: "steps", items: [
+          "Достигни 3 уровня (обязательно!)",
+          "Купи семена у Семёна: /сема → Чёрный рынок — $1,500 за штуку",
+          "Посади: /ферма → выбери количество → подтверди",
+          "Жди 12 часов — придёт уведомление в бот",
+          "Получишь чай: 1 семя = 2 чая",
+          "Продай чай Семёну: /сема → Продать чай"
+        ]},
+        { type: "heading", text: "Экономика чая" },
+        { type: "cmds", items: [
+          ["Цена семени","$1,500 за штуку"],
+          ["Выход","1 семя → 2 чая (через 12 часов)"],
+          ["Курс чая","$900–$1,800 за единицу (обновляется каждый час)"],
+          ["Прибыль с 1 семени","от +$300 до +$2,100"],
+          ["Как проверить курс","/курс"]
+        ]},
+        { type: "warn", text: "⚠️ Курс чая меняется КАЖДЫЙ ЧАС! Продавай когда курс высокий. Следи: /курс" },
+        { type: "tip", text: "💡 5 собранных урожаев — получишь титул «Незаконный фермер»!" },
         { type: "heading", text: "Команды" },
         { type: "cmds", items: [
-          ["/ферма","Посадить семена"],
-          ["/фермы","Список активных посадок"],
+          ["/ферма","Посадить семена (с 3 уровня)"],
+          ["/фермы","Список активных посадок и время до сбора"],
           ["/курс","Текущий курс чая"],
-          ["/сема","Продать чай Семёну"]
+          ["/сема","Купить семена / продать чай Семёну"]
         ]}
       ]
     }
   },
   {
-    id: 7, cat: "Прогресс", icon: "⭐", title: "Уровни и опыт", badge: null,
-    desc: "Как набирать опыт, системе уровней от Шестёрки до Вора в законе.",
-    tags: ["уровень","опыт","прогресс","ранги"],
+    id: 9, cat: "Экономика", icon: "🎰", title: "Казино", badge: null,
+    desc: "Поставь на чётное или нечётное. Минимальная ставка $2,500.",
+    tags: ["казино","ставка","удача","деньги","gambling","кубик","чётное","нечётное"],
     content: {
       sections: [
-        { type: "info", text: "В игре 18 основных уровней. После 18 уровня — звание Легенды с бесконечным прокачкой (каждые 1000 опыта)." },
-        { type: "heading", text: "Таблица уровней (избранные)" },
-        { type: "cmds", items: [
-          ["1 — Шестёрка","0 опыта — старт"],
-          ["2 — Боец","100 опыта — открывается автоугон и ОПГ"],
-          ["5 — Медвежатник","700 опыта"],
-          ["10 — Авторитет","2,700 опыта"],
-          ["15 — Вор","5,950 опыта"],
-          ["18 — Вор в законе (патриарх)","8,500 опыта — максимум"]
+        { type: "info", text: "Казино — игра на удачу. 50/50. Побеждает смелый — теряет жадный." },
+        { type: "heading", text: "Правила" },
+        { type: "steps", items: [
+          "Используй /казино <сумма>",
+          "Или /казино все — поставить весь баланс",
+          "Выбери: чётное или нечётное число",
+          "Бросается кубик 🎲",
+          "При победе — ставка удваивается. При проигрыше — теряешь ставку"
         ]},
-        { type: "heading", text: "Как получать опыт" },
+        { type: "heading", text: "Лимиты" },
         { type: "cmds", items: [
-          ["Сборщик","1 опыт за каждую бутылку"],
-          ["Грузчик","+5 опыта за каждые 5 коробок"],
-          ["Автоугон","reward/10 опыта (мин. 10)"],
-          ["Подписка на канал","10-30 опыта"],
-          ["Промокоды","+10 опыта при активации"],
-          ["Квест Пахана","10-50 опыта в зависимости от результата"]
-        ]}
+          ["Минимальная ставка","$2,500"],
+          ["Максимальная ставка","$100,000,000"]
+        ]},
+        { type: "warn", text: "⚠️ При суммарном обороте $5,000,000 ты получаешь титул «Лудоман»." },
+        { type: "tip", text: "💡 /казино все — рискованная тактика. Один неудачный бросок — и баланс обнулится." }
+      ]
+    }
+  },
+  {
+    id: 14, cat: "Экономика", icon: "💸", title: "Переводы и баланс", badge: null,
+    desc: "Переводи деньги другим игрокам, проверяй баланс. Минимум $50.",
+    tags: ["перевод","деньги","баланс","pay","отправить","transfer","счёт","номер аккаунта"],
+    content: {
+      sections: [
+        { type: "info", text: "Переводы позволяют отправлять деньги другим игрокам. Работает по номеру аккаунта или реплаем на сообщение." },
+        { type: "heading", text: "Как перевести деньги" },
+        { type: "cmds", items: [
+          ["/pay #00001 500","Перевести $500 игроку с номером аккаунта #00001"],
+          ["/pay 500","В ответ на чьё-то сообщение — перевести тому человеку"]
+        ]},
+        { type: "heading", text: "Ограничения" },
+        { type: "cmds", items: [
+          ["Минимум","$50 за одну транзакцию"],
+          ["Забаненным","перевод невозможен"]
+        ]},
+        { type: "warn", text: "⚠️ Переводы необратимы. Убедись в правильности номера аккаунта получателя." },
+        { type: "heading", text: "Узнать номер аккаунта" },
+        { type: "cmds", items: [
+          ["/поиск #00001","Найти игрока по номеру аккаунта"],
+          [".ид","В чате — показать свой ID и номер аккаунта"]
+        ]},
+        { type: "tip", text: "💡 Свой номер аккаунта виден в профиле (команда Я)." }
+      ]
+    }
+  },
+  {
+    id: 15, cat: "Экономика", icon: "🎒", title: "Инвентарь", badge: null,
+    desc: "Хранение предметов: семена, чай, аптечки. Управление и использование.",
+    tags: ["инвентарь","инв","предмет","сумка","вещи","семена","чай","аптечка","хранить"],
+    content: {
+      sections: [
+        { type: "info", text: "Инвентарь — твоя сумка с предметами. Здесь хранятся семена, чай и другие ценности." },
+        { type: "heading", text: "Как открыть" },
+        { type: "cmds", items: [
+          ["/инв","Команда для открытия инвентаря"],
+          ["🎒 Сумка","Кнопка в главной клавиатуре"]
+        ]},
+        { type: "heading", text: "Что можно делать с предметами" },
+        { type: "cmds", items: [
+          ["🧪 Использовать","Применить предмет (аптечка, чай и т.д.)"],
+          ["🗑️ Выбросить","Удалить предмет из инвентаря"]
+        ]},
+        { type: "heading", text: "Предметы в игре" },
+        { type: "cmds", items: [
+          ["Семя 🌱","Для посадки на ферме. Купить: /сема → Чёрный рынок"],
+          ["Чай 🍵","Результат фермы. Продать: /сема → Продать чай"],
+          ["Аптечка 💊","Пополняет здоровье"]
+        ]},
+        { type: "tip", text: "💡 Семена нельзя использовать напрямую из инвентаря — иди на /ферма для посадки." }
+      ]
+    }
+  },
+
+  // ─── РП / СОЦИАЛЬНОЕ ─────────────────────────────────────
+  {
+    id: 16, cat: "РП", icon: "🎭", title: "РП-команды", badge: "new",
+    desc: "Ролевые действия в чате. Обнять, ударить, пнуть — в ответ на чьё-то сообщение.",
+    tags: ["рп","rp","ролевые","roleplay","обнять","ударить","пнуть","действие","чат","мрп","личные"],
+    featured: true,
+    content: {
+      sections: [
+        { type: "info", text: "РП-команды работают только в чате (не в личке), в ответ (реплай) на чужое сообщение. Напиши команду и бот красиво оформит действие." },
+        { type: "heading", text: "Как использовать" },
+        { type: "steps", items: [
+          "Найди сообщение нужного игрока в чате",
+          "Ответь на него (реплай)",
+          "Напиши команду, например: обнять",
+          "Бот отправит: «Имя обнял(а) Имя2»",
+          "Можно добавить текст через перенос строки"
+        ]},
+        { type: "heading", text: "Стандартные команды (базовые)" },
+        { type: "cmds", items: [
+          ["обнять","обнял(а) — нежно"],
+          ["пнуть","пнул(а) — за дело"],
+          ["поцеловать","поцеловал(а)"],
+          ["ударить","ударил(а)"],
+          ["толкнуть","толкнул(а)"],
+          ["погладить","погладил(а)"],
+          ["кусь / укусить","укусил(а)"],
+          ["шлёпнуть","шлёпнул(а)"],
+          ["защитить","защитил(а)"],
+          ["напугать","напугал(а)"]
+        ]},
+        { type: "heading", text: "Любовные команды" },
+        { type: "cmds", items: [
+          ["поцеловать в щёку","поцеловал(а) в щёку"],
+          ["поцеловать в лоб","поцеловал(а) в лоб"],
+          ["обнять нежно","нежно обнял(а)"],
+          ["прижать к себе","прижал(а) к себе"],
+          ["признаться в любви","признался(ась) в любви"],
+          ["сказать комплимент","сказал(а) комплимент"],
+          ["пообещать","пообещал(а)"]
+        ]},
+        { type: "heading", text: "Бандитские команды" },
+        { type: "cmds", items: [
+          ["ограбить","ограбил(а)"],
+          ["угрожать","угрожал(а)"],
+          ["запугать","запугал(а)"],
+          ["связать","связал(а)"],
+          ["похитить","похитил(а)"],
+          ["вырубить","вырубил(а)"],
+          ["допросить","допросил(а)"],
+          ["прижать к стене","прижал(а) к стене"]
+        ]},
+        { type: "heading", text: "Личные РП-команды (МРП)" },
+        { type: "cmds", items: [
+          ["+мрп 😎 / моя_команда / действие","Создать свою РП-команду"],
+          ["-мрп моя_команда","Удалить свою команду"],
+          ["мои мрп","Показать список твоих команд"]
+        ]},
+        { type: "tip", text: "💡 Добавь текст после команды через перенос строки, чтобы персонаж что-то сказал: напиши команду, нажми Enter, напиши слова." }
       ]
     }
   },
   {
     id: 8, cat: "Социальное", icon: "🔱", title: "ОПГ — Группировки", badge: null,
     desc: "Вступи в одну из трёх группировок. Доступно с 2 уровня.",
-    tags: ["опг","группировка","фракция","лидер"],
+    tags: ["опг","группировка","фракция","лидер","банда","клан","вступить","опг лист"],
     content: {
       sections: [
-        { type: "info", text: "ОПГ — организованные преступные группировки. Объединяйся с другими гангстерами, получай силу в числах." },
+        { type: "info", text: "ОПГ — организованные преступные группировки. Объединяйся с другими гангстерами." },
         { type: "heading", text: "Доступные ОПГ" },
         { type: "cmds", items: [
           ["🐺 Black Wolves","Волки. Жёсткие. Стаей сильнее."],
@@ -378,101 +593,102 @@ const ARTICLES = [
         { type: "heading", text: "Команды" },
         { type: "cmds", items: [
           ["/опг","Меню своей ОПГ"],
-          ["/опг лист","Выбрать группировку"],
-          ["/лидеры","Список всех лидеров"],
-          ["/опгинфо","Информация об ОПГ"]
+          ["/опг лист","Выбрать группировку (нужен 2 уровень)"],
+          ["/лидеры","Список всех лидеров и их ОПГ"],
+          ["/опгинфо","Подробная информация об ОПГ"]
         ]},
         { type: "warn", text: "⚠️ Лидер ОПГ не может покинуть группировку самостоятельно. Только через администратора." },
-        { type: "tip", text: "💡 Лидеры могут управлять составом, менять название и описание ОПГ, вести чёрный список." }
-      ]
-    }
-  },
-  {
-    id: 9, cat: "Экономика", icon: "🎰", title: "Казино", badge: null,
-    desc: "Поставь на чётное или нечётное. Минимальная ставка $2,500.",
-    tags: ["казино","ставка","удача","деньги"],
-    content: {
-      sections: [
-        { type: "info", text: "Казино — игра на удачу. 50/50. Побеждает смелый — теряет жадный." },
-        { type: "heading", text: "Правила" },
-        { type: "steps", items: ["Используй /казино <сумма>", "Или /казино все — поставить весь баланс", "Выбери: чётное или нечётное число", "Бросается кубик 🎲", "При победе — ставка удваивается. При проигрыше — теряешь ставку"] },
-        { type: "heading", text: "Лимиты" },
-        { type: "cmds", items: [
-          ["Минимальная ставка","$2,500"],
-          ["Максимальная ставка","$100,000,000"]
-        ]},
-        { type: "warn", text: "⚠️ При суммарном обороте $5,000,000 ты получаешь звание Любитель казино." },
-        { type: "tip", text: "💡 Используй /казино все осторожно. Можно потерять всё в один момент." }
-      ]
-    }
-  },
-  {
-    id: 10, cat: "Прогресс", icon: "🏷️", title: "Титулы", badge: "new",
-    desc: "Коллекционируй и надевай уникальные титулы. От Пустышки до Призрака.",
-    tags: ["титулы","редкость","статус"],
-    content: {
-      sections: [
-        { type: "info", text: "Титулы — твой статус в мире. Показываются в профиле. Получай за достижения, уровни и особые события." },
-        { type: "heading", text: "Редкости" },
-        { type: "cmds", items: [
-          ["⚪ Обычный","Стартовые — Пустышка, Уличный"],
-          ["🟢 Необычный","За активность — Головорез"],
-          ["🔵 Редкий","За серьёзные достижения — Авторитет"],
-          ["🟣 Эпический","Сложные условия — Дон, Полевой командир"],
-          ["🟡 Легендарный","Элита — Крёстный Сын, Призрак"]
-        ]},
-        { type: "heading", text: "Команды" },
-        { type: "cmds", items: [
-          ["/титулы","Открыть список всех титулов"],
-          ["/testtitle","Получить случайный титул (тест)"]
-        ]},
-        { type: "tip", text: "💡 Активный титул отображается в профиле рядом с уровнем. Выбери тот, который тебя достоин." }
-      ]
-    }
-  },
-  {
-    id: 11, cat: "Старт", icon: "🎁", title: "Бонусы и промокоды", badge: "tip",
-    desc: "Ежедневный бонус, промокоды от Пахана и реферальная система.",
-    tags: ["бонус","промокод","рефералка","халява"],
-    content: {
-      sections: [
-        { type: "heading", text: "Ежедневный бонус" },
-        { type: "steps", items: ["Открой профиль: нажми Я", "Нажми кнопку 🎁 Бонус под профилем", "Получи случайно от $5 до $25 и 3-10 опыта", "Повтори завтра — бонус раз в 24 часа"] },
-        { type: "heading", text: "Промокоды" },
-        { type: "cmds", items: [
-          ["📋 Меню → 🎟️ Бонус код","Ввести промокод"],
-          ["Где брать?","Следи за каналом " + "@GangsterWorldNews"]
-        ]},
-        { type: "heading", text: "Реферальная система" },
-        { type: "cmds", items: [
-          ["📋 Меню → 🔗 Рефералка","Получить свою ссылку"],
-          ["За каждого друга","$100 тебе + $50 новичку"]
-        ]},
-        { type: "tip", text: "💡 Подпишись на официальный канал и получи разовый бонус от $50 до $200!" }
+        { type: "tip", text: "💡 Лидеры могут управлять составом, менять название и описание, вести чёрный список. Также лидеры могут закрывать ОПГ от свободного вступления." }
       ]
     }
   },
   {
     id: 12, cat: "Социальное", icon: "🚕", title: "Такси и города", badge: null,
     desc: "Путешествуй между городами. Каждый город — своя атмосфера.",
-    tags: ["такси","город","путешествие"],
+    tags: ["такси","город","путешествие","переезд","ржавый порт","стальной край","золотая пустошь"],
     content: {
       sections: [
-        { type: "info", text: "В игре несколько городов. Стартовый — Ржавый Порт. Переезд стоит денег." },
+        { type: "info", text: "В игре несколько городов. Стартовый — Ржавый Порт. Переезд стоит денег, но меняет обстановку." },
         { type: "heading", text: "Доступные города" },
         { type: "cmds", items: [
-          ["⚓ Ржавый Порт","Стартовый. Бесплатно."],
-          ["🏭 Стальной Край","$150 за переезд"],
-          ["🏜️ Золотая Пустошь","$300 за переезд"]
+          ["⚓ Ржавый Порт","Стартовый. Переезд бесплатный."],
+          ["🏭 Стальной Край","$150 за переезд. Промышленный район."],
+          ["🏜️ Золотая Пустошь","$300 за переезд. Законов нет."]
         ]},
         { type: "heading", text: "Команды" },
         { type: "cmds", items: [
           ["/такси","Открыть меню такси"]
         ]},
-        { type: "tip", text: "💡 Текущий город отображается в профиле. Смена города влияет на атмосферу, но не на механику." }
+        { type: "tip", text: "💡 Текущий город отображается в профиле. Смена города пока косметическая — влияет на атмосферу." }
       ]
     }
   },
+
+  // ─── ПРОГРЕСС ────────────────────────────────────────────
+  {
+    id: 7, cat: "Прогресс", icon: "⭐", title: "Уровни и опыт", badge: null,
+    desc: "Как набирать опыт, система уровней от Шестёрки до Вора в законе.",
+    tags: ["уровень","опыт","прогресс","ранги","ур","exp","прокачка","повышение"],
+    content: {
+      sections: [
+        { type: "info", text: "В игре 18 основных уровней. После 18 уровня — звание Легенды (каждые 1000 опыта — следующий уровень)." },
+        { type: "heading", text: "Таблица уровней" },
+        { type: "cmds", items: [
+          ["1 — Шестёрка","0 опыта — старт"],
+          ["2 — Боец","100 опыта — открывается автоугон и ОПГ"],
+          ["3 — Разведчик","250 опыта — открывается ферма"],
+          ["5 — Медвежатник","700 опыта"],
+          ["10 — Авторитет","2,700 опыта"],
+          ["15 — Вор","5,950 опыта"],
+          ["18 — Вор в законе (патриарх)","8,500 опыта — максимум"]
+        ]},
+        { type: "heading", text: "Как получать опыт" },
+        { type: "cmds", items: [
+          ["Сборщик","1 опыт за каждую бутылку"],
+          ["Грузчик","+5 опыта за каждые 5 коробок"],
+          ["Автоугон","reward/10 опыта (минимум 10)"],
+          ["Подписка на канал","10–30 опыта"],
+          ["Промокоды","+10 опыта при активации"],
+          ["Квест Пахана","10–50 опыта (зависит от результата)"],
+          ["Форум / привязка аккаунта","+100 опыта"]
+        ]}
+      ]
+    }
+  },
+  {
+    id: 10, cat: "Прогресс", icon: "🏷️", title: "Титулы", badge: "new",
+    desc: "Коллекционируй и надевай уникальные титулы. От Пустышки до Призрака.",
+    tags: ["титулы","редкость","статус","титул","badge","звание","коллекция"],
+    content: {
+      sections: [
+        { type: "info", text: "Титулы — твой статус в мире. Показываются в профиле. Получай за достижения, уровни и особые события." },
+        { type: "heading", text: "Редкости" },
+        { type: "cmds", items: [
+          ["⚪ Обычный","Пустышка (старт), Бутылочник, Грузоподъёмник"],
+          ["🟢 Необычный","Автолюбитель, Незаконный фермер, Лудоман"],
+          ["🟣 Эпический","Властный (10 ур.), Полевой командир (лидер ОПГ), Магнат ($50,000)"],
+          ["🟡 Легендарный","Крёстный Сын (18 ур. + лидер + $100,000), Призрак (???)"]
+        ]},
+        { type: "heading", text: "Как получить" },
+        { type: "cmds", items: [
+          ["Пустышка","Стартовый — выдаётся всем"],
+          ["Бутылочник","Сдать 100 бутылок суммарно"],
+          ["Грузоподъёмник","Перенести 5+ коробок за одну смену"],
+          ["Автолюбитель","15 успешных угонов"],
+          ["Незаконный фермер","5 сборов урожая"],
+          ["Лудоман","20 игр в казино"],
+          ["Властный","Достигнуть 10 уровня"],
+          ["Полевой командир","Стать лидером ОПГ"],
+          ["Магнат","Накопить $50,000 на балансе"]
+        ]},
+        { type: "heading", text: "Команды" },
+        { type: "cmds", items: [
+          ["/титулы","Открыть список всех титулов и выбрать активный"]
+        ]},
+        { type: "tip", text: "💡 Активный титул отображается в профиле. Можешь менять его когда угодно через /титулы." }
+      ]
+    }
+  }
 ];
 
 const CATS = ["Все", ...new Set(ARTICLES.map(a => a.cat))];
@@ -488,23 +704,48 @@ function buildCats() {
     a.className = 'cat-item' + (cat === activeCat ? ' active' : '');
     a.href = '#';
     a.innerHTML = `<span class="cat-icon">${catIcon(cat)}</span>${cat}<span class="cat-count">${count}</span>`;
-    a.onclick = e => { e.preventDefault(); activeCat = cat; activeBadge = null; searchQuery = ""; document.getElementById('searchInput').value = ""; render(); updateCats(); };
+    a.onclick = e => {
+      e.preventDefault();
+      activeCat = cat; activeBadge = null; searchQuery = "";
+      document.getElementById('searchInput').value = "";
+      render(); updateCats();
+    };
     el.appendChild(a);
   });
 }
 
 function catIcon(cat) {
-  return {Все:"📚",Старт:"🚀",Работа:"💪",Криминал:"🔪",Экономика:"💰",Прогресс:"📈",Социальное:"🤝"}[cat] || "📄";
+  return {
+    Все:"📚", Старт:"🚀", Работа:"💪", Криминал:"🔪",
+    Экономика:"💰", Прогресс:"📈", Социальное:"🤝", РП:"🎭"
+  }[cat] || "📄";
 }
 
 function updateCats() {
-  document.querySelectorAll('.cat-item').forEach((el, i) => {
+  document.querySelectorAll('#catList .cat-item').forEach((el, i) => {
     if (i < CATS.length) el.classList.toggle('active', CATS[i] === activeCat);
   });
 }
 
 function filterByBadge(badge) {
-  activeBadge = badge; activeCat = "Все"; searchQuery = ""; document.getElementById('searchInput').value = ""; render(); updateCats();
+  activeBadge = badge; activeCat = "Все"; searchQuery = "";
+  document.getElementById('searchInput').value = "";
+  render(); updateCats();
+}
+
+// Full-text search: searches title, desc, tags AND content sections text
+function searchInContent(article, q) {
+  if (!article.content) return false;
+  for (const s of article.content.sections) {
+    if (s.text && s.text.toLowerCase().includes(q)) return true;
+    if (s.items) {
+      for (const item of s.items) {
+        const str = Array.isArray(item) ? item.join(' ') : item;
+        if (str.toLowerCase().includes(q)) return true;
+      }
+    }
+  }
+  return false;
 }
 
 function filtered() {
@@ -513,32 +754,63 @@ function filtered() {
   if (activeBadge) list = list.filter(a => a.badge === activeBadge);
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
-    list = list.filter(a => a.title.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q) || a.tags.some(t => t.includes(q)));
+    list = list.filter(a =>
+      a.title.toLowerCase().includes(q) ||
+      a.desc.toLowerCase().includes(q) ||
+      a.tags.some(t => t.toLowerCase().includes(q)) ||
+      searchInContent(a, q)
+    );
   }
   return list;
+}
+
+function highlightText(text, query) {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return text.replace(new RegExp(`(${escaped})`, 'gi'),
+    '<span class="search-highlight">$1</span>');
 }
 
 function render() {
   const grid = document.getElementById('grid');
   const list = filtered();
+  const banner = document.getElementById('searchBanner');
+
   document.getElementById('resultsCount').textContent = list.length + " статей";
-  document.getElementById('contentTitle').innerHTML = activeCat === "Все" ? "Все статьи" : `<span>${catIcon(activeCat)}</span> ${activeCat}`;
+  document.getElementById('contentTitle').innerHTML =
+    activeCat === "Все" ? "Все статьи" : `<span>${catIcon(activeCat)}</span> ${activeCat}`;
+
+  // Search banner
+  if (searchQuery) {
+    banner.className = 'search-banner visible';
+    banner.innerHTML = `🔍 По запросу <strong>"${searchQuery}"</strong> найдено: <strong>${list.length}</strong> ${list.length === 1 ? 'статья' : list.length < 5 ? 'статьи' : 'статей'}`;
+  } else {
+    banner.className = 'search-banner';
+  }
+
   grid.innerHTML = '';
   if (!list.length) {
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-title">Ничего не найдено</div><div>Попробуй другой запрос или категорию</div></div>';
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">Ничего не найдено</div>
+      <div>Попробуй другой запрос или категорию</div>
+    </div>`;
     return;
   }
+
   list.forEach((a, i) => {
     const card = document.createElement('div');
     card.className = 'article-card' + (a.featured ? ' featured' : '');
-    card.style.animationDelay = (i * 0.05) + 's';
+    card.style.animationDelay = (i * 0.04) + 's';
     card.onclick = () => openModal(a);
     const badge = a.badge ? `<span class="card-badge badge-${a.badge}">${{new:'🆕 NEW',hot:'🔥 HOT',tip:'💡 TIP'}[a.badge]}</span>` : '';
-    const tags = a.tags.map(t => `<span class="card-tag">${t}</span>`).join('');
+    const tags = a.tags.slice(0, 4).map(t => `<span class="card-tag">${searchQuery ? highlightText(t, searchQuery) : t}</span>`).join('');
+    const titleHtml = searchQuery ? highlightText(a.title, searchQuery) : a.title;
+    const descHtml = searchQuery ? highlightText(a.desc, searchQuery) : a.desc;
     card.innerHTML = `
       <div class="card-top"><div class="card-icon">${a.icon}</div>${badge}</div>
-      <div class="card-title">${a.title}</div>
-      <div class="card-desc">${a.desc}</div>
+      <div class="card-title">${titleHtml}</div>
+      <div class="card-desc">${descHtml}</div>
       <div class="card-footer">${tags}</div>`;
     grid.appendChild(card);
   });
@@ -548,28 +820,57 @@ function openModal(a) {
   document.getElementById('mTag').textContent = a.cat.toUpperCase() + ' · ' + catIcon(a.cat);
   document.getElementById('mTitle').textContent = a.title;
   const body = document.getElementById('mBody');
-  body.innerHTML = a.content.sections.map(s => renderSection(s)).join('');
+  body.innerHTML = '';
+  let currentSection = null;
+  a.content.sections.forEach(s => {
+    if (s.type === 'heading') {
+      if (currentSection) body.appendChild(currentSection);
+      currentSection = document.createElement('div');
+      currentSection.className = 'modal-section';
+      const h = document.createElement('h3');
+      h.textContent = s.text;
+      currentSection.appendChild(h);
+    } else {
+      if (!currentSection) {
+        currentSection = document.createElement('div');
+        currentSection.className = 'modal-section';
+      }
+      currentSection.insertAdjacentHTML('beforeend', renderSection(s));
+    }
+  });
+  if (currentSection) body.appendChild(currentSection);
   document.getElementById('overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
 function renderSection(s) {
-  if (s.type === 'heading') return `<div class="modal-section"><h3>${s.text}</h3></div>`.replace('</div>','');
   if (s.type === 'info') return `<div class="info-box">${s.text}</div>`;
   if (s.type === 'warn') return `<div class="warn-box">${s.text}</div>`;
-  if (s.type === 'tip') return `<div class="tip-box">${s.text}</div>`;
+  if (s.type === 'tip')  return `<div class="tip-box">${s.text}</div>`;
   if (s.type === 'steps') return `<ul class="steps">${s.items.map(i => `<li>${i}</li>`).join('')}</ul>`;
-  if (s.type === 'cmds') return `<div class="cmd-list">${s.items.map(([c,d]) => `<div class="cmd-item"><span class="cmd-code">${c}</span><span class="cmd-desc">${d}</span></div>`).join('')}</div>`;
-  if (s.type === 'rewards') return `<div class="reward-grid">${s.items.map(([icon,val,label]) => `<div class="reward-item"><div class="reward-icon">${icon}</div><span class="reward-val">${val}</span><span class="reward-label">${label}</span></div>`).join('')}</div>`;
+  if (s.type === 'cmds')  return `<div class="cmd-list">${s.items.map(([c,d]) =>
+    `<div class="cmd-item"><span class="cmd-code">${c}</span><span class="cmd-desc">${d}</span></div>`).join('')}</div>`;
+  if (s.type === 'rewards') return `<div class="reward-grid">${s.items.map(([icon,val,label]) =>
+    `<div class="reward-item"><div class="reward-icon">${icon}</div><span class="reward-val">${val}</span><span class="reward-label">${label}</span></div>`).join('')}</div>`;
+  if (s.type === 'table') return `<table class="rp-table"><thead><tr>${s.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${s.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   return '';
 }
 
 function closeModal(e) { if (e.target === document.getElementById('overlay')) closeModalBtn(); }
-function closeModalBtn() { document.getElementById('overlay').classList.remove('open'); document.body.style.overflow = ''; }
+function closeModalBtn() {
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
 
+// Debounced search
+let searchTimer;
 document.getElementById('searchInput').addEventListener('input', e => {
-  searchQuery = e.target.value.trim();
-  activeCat = "Все"; activeBadge = null; render(); updateCats();
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = e.target.value.trim();
+    activeCat = "Все"; activeBadge = null;
+    render(); updateCats();
+  }, 150);
 });
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalBtn(); });
@@ -580,13 +881,12 @@ render();
 document.getElementById('statTotal').textContent = ARTICLES.length;
 document.getElementById('articleCount').textContent = ARTICLES.length + ' статей';
 
-// Animate stat
 let n = 0;
 const interval = setInterval(() => {
   n += 1;
   document.getElementById('statTotal').textContent = n;
   if (n >= ARTICLES.length) clearInterval(interval);
-}, 80);
+}, 60);
 </script>
 </body>
 </html>
